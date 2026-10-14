@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 public final class Validator {
     private static final Set<String> ALLOWED_X = Set.of("-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3");
     private static final Pattern DECIMAL = Pattern.compile("[+-]?\\d+([.,]\\d+)?");
-    private static final int MAX_NUMBER_LENGTH = 30;
 
     private Validator() {
     }
@@ -24,7 +23,7 @@ public final class Validator {
 
     private static BigDecimal parseInOpenInterval(String raw, String name, int min, int max) {
         String text = raw.trim();
-        if (text.length() > MAX_NUMBER_LENGTH || !DECIMAL.matcher(text).matches()) {
+        if (!DECIMAL.matcher(text).matches()) {
             throw new ValidationException(name + " должен быть десятичным числом");
         }
         BigDecimal value = new BigDecimal(text.replace(',', '.'));

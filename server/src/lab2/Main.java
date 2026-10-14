@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class Main {
-    private static final int MAX_BODY_BYTES = 1024;
+    private static final int MAX_BODY_BYTES = 8 * 1024;
 
     private static final List<Result> history = new ArrayList<>();
 
@@ -33,7 +33,12 @@ public class Main {
             String method = params.getProperty("REQUEST_METHOD", "");
             switch (method) {
                 case "POST" -> {
-                    Point point = Validator.validate(readForm(params));
+                    int length = contentLength(params);
+                    if (length > MAX_BODY_BYTES) {
+                        return HttpResponse.error(413, "Payload Too Large",
+                                "Запрос слишком большой (больше " + MAX_BODY_BYTES / 1024 + " КБ)");
+                    }
+                    Point point = Validator.validate(readForm(params, length));
                     boolean hit = AreaChecker.isHit(point.x(), point.y(), point.r());
                     long execNanos = System.nanoTime() - start;
                     history.add(new Result(point, hit, Instant.now(), execNanos));
@@ -54,19 +59,23 @@ public class Main {
         }
     }
 
-    private static FormData readForm(Properties params) throws IOException {
-        String contentType = params.getProperty("CONTENT_TYPE", "");
-        if (!contentType.toLowerCase().startsWith("application/x-www-form-urlencoded")) {
-            throw new ValidationException("Ожидается application/x-www-form-urlencoded");
-        }
+    private static int contentLength(Properties params) {
         int length;
         try {
             length = Integer.parseInt(params.getProperty("CONTENT_LENGTH", "0"));
         } catch (NumberFormatException e) {
             throw new ValidationException("Некорректный CONTENT_LENGTH");
         }
-        if (length <= 0 || length > MAX_BODY_BYTES) {
-            throw new ValidationException("Некорректный размер тела запроса");
+        if (length <= 0) {
+            throw new ValidationException("Пустой запрос");
+        }
+        return length;
+    }
+
+    private static FormData readForm(Properties params, int length) throws IOException {
+        String contentType = params.getProperty("CONTENT_TYPE", "");
+        if (!contentType.toLowerCase().startsWith("application/x-www-form-urlencoded")) {
+            throw new ValidationException("Ожидается application/x-www-form-urlencoded");
         }
         byte[] body = FCGIInterface.request.inStream.readNBytes(length);
         return FormData.parse(body);
