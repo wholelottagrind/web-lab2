@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лаба №2, вар. 14953554</title>
+
+    <script src="script.js" defer></script>
+
+    <style>
+        body {
+            color: #222;
+            font-family: Arial, sans-serif;
+        }
+
+        #main-table {
+            width: 90vw;
+            margin: 0 auto;
+        }
+
+        #lab-info {
+            color: #1f4f7a;
+            font-family: serif;
+            font-size: 20px;
+        }
+
+        td {
+            text-align: center;
+            vertical-align: top;
+        }
+
+        #draw-area {
+            border: 2px solid green;
+            border-radius: 10px;
+            margin: 20px auto;
+            height: auto;
+            width: min(500px, 90%);
+        }
+
+        #point-form {
+            width: min(500px, 90%);
+            margin: 0 auto;
+
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .controls>label {
+            display: inline-block;
+            margin: 4px;
+            padding: 6px 10px;
+            border: 1px solid #9bb7d4;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .controls>label:has(input:checked) {
+            color: white;
+            background-color: #4b86b4;
+        }
+
+        button {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #dcecff;
+        }
+
+        button:disabled {
+            cursor: wait;
+        }
+
+        input[type="text"] {
+            margin: 4px;
+            padding: 6px;
+        }
+
+        input:focus {
+            outline: 2px solid #4b86b4;
+        }
+
+        .required::after {
+            color: #c00;
+            content: " *";
+        }
+
+        #error-message {
+            color: #c00;
+            min-height: 20px;
+            margin-top: 10px;
+        }
+
+        .result-table {
+            margin: 0 auto;
+            width: min(700px, 95%);
+            border-collapse: collapse;
+        }
+
+        .result-table td,
+        .result-table th {
+            border: 1px solid black;
+            padding: 6px;
+        }
+
+        .result-table .hit {
+            color: green;
+        }
+
+        .result-table .miss {
+            color: #c00;
+        }
+
+        #content-table {
+            width: 100%;
+            table-layout: fixed;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <table id="main-table">
+            <tr id="lab-info">
+                <td>
+                    Гембицкий Кирилл Дмитриевич
+                </td>
+                <td>
+                    Группа P3130
+                </td>
+                <td>
+                    Вариант 14953554
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="3">
+                    <table id="content-table">
+                        <tr>
+                            <td>
+                                <canvas id="draw-area" width="500" height="500"></canvas>
+                                <form id="point-form" action="fcgi-bin/server.jar" method="post">
+                                    <fieldset>
+                                        <legend class="required">X</legend>
+                                        <div class="controls" id="x-controls">
+                                            <label><input type="checkbox" name="x" value="-5"> -5</label>
+                                            <label><input type="checkbox" name="x" value="-4"> -4</label>
+                                            <label><input type="checkbox" name="x" value="-3"> -3</label>
+                                            <label><input type="checkbox" name="x" value="-2"> -2</label>
+                                            <label><input type="checkbox" name="x" value="-1"> -1</label>
+                                            <label><input type="checkbox" name="x" value="0"> 0</label>
+                                            <label><input type="checkbox" name="x" value="1"> 1</label>
+                                            <label><input type="checkbox" name="x" value="2"> 2</label>
+                                            <label><input type="checkbox" name="x" value="3"> 3</label>
+                                        </div>
+                                    </fieldset>
+
+                                    <div>
+                                        <label class="required" for="y-input">Y</label>
+                                        <input type="text" id="y-input" name="y" placeholder="-5 < Y < 5"
+                                            autocomplete="off">
+                                    </div>
+
+                                    <div>
+                                        <label class="required" for="r-input">R</label>
+                                        <input type="text" id="r-input" name="r" placeholder="2 < R < 5"
+                                            autocomplete="off">
+                                    </div>
+
+                                    <button type="submit" id="submit-button">Проверить</button>
+                                </form>
+                                <div id="error-message"></div>
+                            </td>
+
+                            <td>
+                                <span>Попытки</span>
+                                <table id="points-table" class="result-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">X</th>
+                                            <th scope="col">Y</th>
+                                            <th scope="col">R</th>
+                                            <th scope="col">Результат</th>
+                                            <th scope="col">Время</th>
+                                            <th scope="col">Время работы</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="result-body"></tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </main>
+</body>
+
+</html>
