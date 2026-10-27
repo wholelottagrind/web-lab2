@@ -40,8 +40,11 @@ public class Main {
                 return response(200, "OK", Json.history(history));
             } else if (method.equals("GET")) {
                 return response(200, "OK", Json.history(history));
+            } else if (method.equals("DELETE")) {
+                history.clear();
+                return response(200, "OK", Json.history(history));
             } else {
-                return response(405, "Method Not Allowed", Json.error("Разрешены только GET и POST"));
+                return response(405, "Method Not Allowed", Json.error("Разрешены только GET, POST и DELETE"));
             }
         } catch (ValidationException e) {
             return response(400, "Bad Request", Json.error(e.getMessage()));

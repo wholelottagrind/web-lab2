@@ -249,6 +249,17 @@ form.addEventListener('submit', async event => {
     }
 });
 
+const clearHistoryButton = document.querySelector('#clear-history');
+clearHistoryButton.addEventListener('click', async () => {
+    try {
+        results = await requestHistory({ method: 'DELETE' });
+        renderHistory();
+        drawGraph(currentR());
+    } catch (error) {
+        errorDiv.textContent = error.message;
+    }
+});
+
 drawGraph(null);
 requestHistory({ method: 'GET' })
     .then(data => {
