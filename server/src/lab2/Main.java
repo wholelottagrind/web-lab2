@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class Main {
-    private static final int MAX_BODY_BYTES = 1024;
+    private static final int MAX_BODY_BYTES = 8 * 1024;
 
     private static final List<Result> history = new ArrayList<>();
 

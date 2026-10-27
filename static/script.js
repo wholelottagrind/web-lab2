@@ -1,5 +1,5 @@
 const API_URL = 'fcgi-bin/server.jar';
-const DEFAULT_R = 4;
+const AXIS_TICKS = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5];
 
 let results = [];
 
@@ -11,15 +11,16 @@ const errorDiv = document.querySelector('#error-message');
 const xCheckboxes = document.querySelectorAll('input[name="x"]');
 
 const DECIMAL = /^[+-]?\d+(\.\d+)?$/;
-const MAX_NUMBER_LENGTH = 30;
 
 function checkNumber(raw, name, min, max) {
     const text = raw.trim().replace(',', '.');
-    if (text.length > MAX_NUMBER_LENGTH || !DECIMAL.test(text)) {
+    if (!DECIMAL.test(text)) {
         throw new Error(`${name} должен быть десятичным числом`);
     }
     const value = Number(text);
-    if (value <= min || value >= max) {
+    const onBound = value === min || value === max;
+    const hasFraction = /\.\d*[1-9]/.test(text);
+    if (value < min || value > max || (onBound && !hasFraction)) {
         throw new Error(`${name} должен быть строго между ${min} и ${max}`);
     }
     return text;
@@ -107,35 +108,13 @@ function getGraphData() {
 }
 
 function drawGraph(r) {
-    const { canvas, ctx, centerX, centerY, scale, screenX, screenY } = getGraphData();
-    const size = r ?? DEFAULT_R;
-
+    const { canvas, ctx } = getGraphData();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = 'rgba(207, 81, 213, 0.55)';
-    ctx.strokeStyle = '#323d91';
-    ctx.lineWidth = 2;
-
-    ctx.fillRect(screenX(-size), screenY(size), size * scale, size * scale);
-    ctx.strokeRect(screenX(-size), screenY(size), size * scale, size * scale);
-
-    ctx.beginPath();
-    ctx.moveTo(screenX(0), screenY(0));
-    ctx.lineTo(screenX(size), screenY(0));
-    ctx.lineTo(screenX(0), screenY(size / 2));
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.lineTo(screenX(size), centerY);
-    ctx.arc(centerX, centerY, size * scale, 0, Math.PI / 2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    drawAxes(r);
+    if (r !== null) {
+        drawArea(r);
+    }
+    drawAxes();
 
     if (r !== null) {
         results
@@ -144,14 +123,40 @@ function drawGraph(r) {
     }
 }
 
-function drawAxes(r) {
+function drawArea(r) {
+    const { ctx, centerX, centerY, scale, screenX, screenY } = getGraphData();
+
+    ctx.fillStyle = 'rgba(207, 81, 213, 0.55)';
+    ctx.strokeStyle = '#323d91';
+    ctx.lineWidth = 2;
+
+    ctx.fillRect(screenX(-r), screenY(r), r * scale, r * scale);
+    ctx.strokeRect(screenX(-r), screenY(r), r * scale, r * scale);
+
+    ctx.beginPath();
+    ctx.moveTo(screenX(0), screenY(0));
+    ctx.lineTo(screenX(r), screenY(0));
+    ctx.lineTo(screenX(0), screenY(r / 2));
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(screenX(r), centerY);
+    ctx.arc(centerX, centerY, r * scale, 0, Math.PI / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+}
+
+function drawAxes() {
     const { canvas, ctx, centerX, centerY, screenX, screenY } = getGraphData();
-    const size = r ?? DEFAULT_R;
 
     ctx.strokeStyle = 'black';
     ctx.fillStyle = 'black';
     ctx.lineWidth = 1;
-    ctx.font = '14px Arial';
+    ctx.font = '12px Arial';
 
     ctx.beginPath();
     ctx.moveTo(15, centerY);
@@ -171,28 +176,25 @@ function drawAxes(r) {
     ctx.lineTo(centerX + 5, 25);
     ctx.stroke();
 
+    ctx.font = '14px Arial';
     ctx.fillText('X', canvas.width - 25, centerY - 10);
     ctx.fillText('Y', centerX + 10, 25);
+    ctx.font = '12px Arial';
+    ctx.fillText('0', centerX - 12, centerY + 16);
 
-    const ticks = [
-        { value: -size, label: r === null ? '-R' : String(-r) },
-        { value: -size / 2, label: r === null ? '-R/2' : String(-r / 2) },
-        { value: size / 2, label: r === null ? 'R/2' : String(r / 2) },
-        { value: size, label: r === null ? 'R' : String(r) }
-    ];
-    ticks.forEach(({ value, label }) => {
+    AXIS_TICKS.forEach(value => {
         const x = screenX(value);
         const y = screenY(value);
 
         ctx.beginPath();
-        ctx.moveTo(x, centerY - 5);
-        ctx.lineTo(x, centerY + 5);
-        ctx.moveTo(centerX - 5, y);
-        ctx.lineTo(centerX + 5, y);
+        ctx.moveTo(x, centerY - 4);
+        ctx.lineTo(x, centerY + 4);
+        ctx.moveTo(centerX - 4, y);
+        ctx.lineTo(centerX + 4, y);
         ctx.stroke();
 
-        ctx.fillText(label, x - 8, centerY + 20);
-        ctx.fillText(label, centerX + 10, y + 5);
+        ctx.fillText(value, x - (value < 0 ? 7 : 3), centerY + 18);
+        ctx.fillText(value, centerX + 8, y + 4);
     });
 }
 
